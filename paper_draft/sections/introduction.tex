@@ -1,0 +1,26 @@
+\section{Introduction}
+\label{sec:intro}
+
+When a French speaker says \emph{quatre-vingt-dix-sept}, they are not merely naming a number---they are performing implicit arithmetic: $4 \times 20 + 10 + 7 = 97$.
+This vigesimal (base-20) system, used for numbers 70--99 in standard French, stands in sharp contrast to the regular decimal systems of most European languages and even to Belgian French, which uses transparent forms like \emph{nonante-sept} (ninety-seven).
+How do large language models (LLMs) handle this linguistic irregularity?
+Do they simply memorize the mapping, or does the vigesimal structure leave traces in their internal representations?
+
+Understanding how LLMs bridge linguistic form and mathematical meaning is a central question in the study of numerical reasoning.
+Recent work has shown that models encode numbers using base-10 digit representations \citep{levy2024language}, that sinusoidal probes can recover numeric values from hidden states \citep{kadlcik2025pretrained, stefanik2025unravelling}, and that implicit compositional operators embedded in numeral systems pose a significant challenge \citep{bhattacharya2025investigating}.
+However, no prior study has examined how the French vigesimal system---one of the most widely encountered irregular number systems---is represented internally by LLMs.
+
+We address this gap with the first systematic study of French vigesimal number processing in LLMs.
+Our approach combines behavioral evaluation using \gptmodel with representational analysis of \mistral's hidden states, leveraging Belgian French as a natural control condition that isolates the effect of vigesimal structure from other linguistic factors.
+
+Our behavioral results show that \gptmodel achieves perfect accuracy (100\%) on all French number tasks, including vigesimal conversion, arithmetic, and counting across vigesimal boundaries.
+Yet beneath this behavioral ceiling, \mistral's internal representations tell a different story: vigesimal numbers cluster by linguistic base rather than numeric proximity, with 70\% of nearest neighbors sharing a prefix like \quatrevingt.
+French number words yield higher linear probe accuracy ($R^2 = 0.979$) than digit strings ($R^2 = 0.943$), and Belgian French produces the most numerically ordered representations ($\rho = 0.591$).
+
+We make the following contributions:
+\begin{itemize}[leftmargin=*,itemsep=0pt,topsep=0pt]
+    \item We conduct the first behavioral and representational analysis of French vigesimal number processing in LLMs, demonstrating perfect behavioral accuracy alongside structured internal representations.
+    \item We show that vigesimal numbers cluster by linguistic base in representation space, revealing that LLMs organize these numbers by their surface form rather than their numeric value.
+    \item We establish Belgian French as an effective control condition, finding that its regular decimal system produces representations with superior ordinal structure compared to standard French.
+    \item We find that French number words produce more linearly decodable numeric representations than raw digit strings, suggesting that linguistic context enriches rather than obscures numerical information.
+\end{itemize}

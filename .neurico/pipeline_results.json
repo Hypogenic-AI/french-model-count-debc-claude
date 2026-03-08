@@ -1,0 +1,27 @@
+{
+  "success": true,
+  "stages": {
+    "resource_finder": {
+      "success": true,
+      "completion_marker": "/workspaces/french-model-count-debc-claude/.resource_finder_complete",
+      "outputs": {
+        "literature_review": "/workspaces/french-model-count-debc-claude/literature_review.md",
+        "resources_catalog": "/workspaces/french-model-count-debc-claude/resources.md",
+        "papers_dir": "/workspaces/french-model-count-debc-claude/papers",
+        "datasets_dir": "/workspaces/french-model-count-debc-claude/datasets",
+        "code_dir": "/workspaces/french-model-count-debc-claude/code"
+      },
+      "log_file": "/workspaces/french-model-count-debc-claude/logs/resource_finder_claude.log",
+      "transcript_file": "/workspaces/french-model-count-debc-claude/logs/resource_finder_claude_transcript.jsonl",
+      "elapsed_time": 938.81818318367
+    },
+    "experiment_runner": {
+      "success": true,
+      "return_code": 0,
+      "elapsed_time": 1203.0165781974792,
+      "log_file": "/workspaces/french-model-count-debc-claude/logs/execution_claude.log",
+      "transcript_file": "/workspaces/french-model-count-debc-claude/logs/execution_claude_transcript.jsonl"
+    }
+  },
+  "work_dir": "/workspaces/french-model-count-debc-claude"
+}

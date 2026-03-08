@@ -1,0 +1,764 @@
+You are an academic paper writer. Generate a complete NEURIPS style paper
+based on the experiment results provided.
+
+════════════════════════════════════════════════════════════════════════════════
+                         IMPORTANT: BEFORE YOU START
+════════════════════════════════════════════════════════════════════════════════
+
+Before writing any content, you MUST complete these steps:
+
+1. READ THE SKILL: Review the paper-writer skill at .claude/skills/paper-writer/SKILL.md
+2. READ THE STYLE GUIDE: Study templates/paper_writing/lab_style_guide.md carefully
+3. REVIEW EXAMPLES: Browse paper_examples/ for formatting and language patterns:
+   - Look at sections/1.introduction.tex for language style
+   - Look at tables/*.tex for table formatting
+   - Look at commands/*.tex for macro usage
+4. VERIFY COMMAND TEMPLATES: Command templates (math.tex, general.tex, macros.tex) are pre-copied to paper_draft/commands/
+
+CRITICAL: Reference example papers for FORMATTING and LANGUAGE STYLE only.
+Do NOT copy content, phrasing, or narrative structure from the example papers.
+The examples are in a different research domain - focus only on presentation style.
+
+════════════════════════════════════════════════════════════════════════════════
+                            EXPERIMENT REPORT
+════════════════════════════════════════════════════════════════════════════════
+
+# How Does the Model Count in French?
+
+## 1. Executive Summary
+
+We investigated how LLMs represent and process the French vigesimal counting system (70-99), where numbers use base-20 constructions like &#34;quatre-vingt-dix-sept&#34; (4×20+10+7 = 97). Our study combined behavioral evaluation of GPT-4.1 with representational analysis of Mistral 7B&#39;s hidden states.
+
+**Key finding**: GPT-4.1 achieves 100% accuracy on all French number tasks — conversion, arithmetic, and counting — including vigesimal numbers. However, Mistral 7B&#39;s internal representations reveal that the vigesimal system creates a distinctive fingerprint: vigesimal numbers (70-99) cluster by *linguistic base* rather than numeric proximity (70% of nearest neighbors share a linguistic base like &#34;quatre-vingt-&#34;), and French number representations are better linearly decodable (R²=0.979) than digit representations (R²=0.943). Belgian French (septante/huitante/nonante) produces representations with the highest ordinal correlation (ρ=0.591 vs 0.520 for standard French).
+
+**Practical implication**: Modern LLMs have fully memorized the French counting system at the behavioral level, but internally organize vigesimal numbers by their linguistic structure rather than their numeric value. The model &#34;thinks in vigesimal&#34; even though it &#34;answers in decimal.&#34;
+
+## 2. Goal
+
+**Hypothesis**: LLMs represent and process the French vigesimal counting system in specific, mappable ways, with the irregular structure (70-99) potentially causing representational difficulties compared to regular decimal numbers.
+
+**Why this matters**: French is one of the most widely-spoken languages with a vigesimal number system, making it a natural test case for understanding how LLMs bridge linguistic form and mathematical meaning. If models struggle with vigesimal representations internally, this reveals fundamental limits in how they handle implicit mathematical operations embedded in language.
+
+## 3. Data Construction
+
+### Dataset Description
+Custom-generated dataset of French numbers 0-999, with focused analysis on 0-99. No prior French number dataset for LLM analysis existed.
+
+### Example Samples
+
+| Number | French Word | Belgian French | Vigesimal? | Implicit Operations |
+|--------|-------------|---------------|------------|-------------------|
+| 42 | quarante-deux | quarante-deux | No | - |
+| 70 | soixante-dix | septante | Yes | 60+10 |
+| 80 | quatre-vingts | huitante | Yes | 4×20+0 |
+| 97 | quatre-vingt-dix-sept | nonante-sept | Yes | 4×20+10+7 |
+
+### Sub-datasets
+- **French Numbers 0-999**: 1,000 entries with vigesimal annotations
+- **Vigesimal Subset 70-99**: 30 entries with both French and Belgian French forms
+- **Arithmetic Tasks**: 100 addition tasks with vigesimal involvement flags
+- **Counting Prompts**: 6 boundary-crossing sequences (3 vigesimal, 3 control)
+
+## 4. Experiment Description
+
+### Methodology
+
+#### Experiment 1: Behavioral Evaluation (GPT-4.1)
+- **French→Number conversion**: 100 number words (0-99) → numeric answer
+- **Number→French conversion**: 100 numbers → French word generation
+- **Belgian French→Number**: 30 vigesimal numbers in Belgian French form
+- **Arithmetic in French**: 100 addition tasks with French operands
+- **Counting sequences**: 6 boundary-crossing sequences (69→70, 79→80, 89→90 + controls)
+
+#### Experiment 2: Representational Analysis (Mistral 7B v0.3)
+- Extract last-token hidden states for 100 numbers × 3 forms (French/digit/Belgian) × 5 layers
+- Tokenization analysis comparing token counts across forms
+- t-SNE visualization of representation space
+- Cross-form cosine similarity analysis
+
+#### Experiment 3: Linear Probing (Mistral 7B)
+- Ridge regression probes to predict numeric value from hidden states
+- 5-fold cross-validation, comparing vigesimal vs decimal MAE
+- Representational Similarity Analysis (RSA) across forms
+- Nearest-neighbor analysis: do vigesimal numbers cluster by linguistic base or numeric value?
+
+### Tools and Libraries
+| Library | Version | Purpose |
+|---------|---------|---------|
+| OpenAI API | GPT-4.1 | Behavioral evaluation |
+| Mistral 7B v0.3 | - | Representation extraction |
+| PyTorch | 2.10.0 | Model inference |
+| transformers | 5.3.0 | Model loading |
+| scikit-learn | - | Linear probes, t-SNE, PCA |
+| scipy | - | Statistical tests |
+
+### Hardware
+- 2× NVIDIA RTX 3090 (24GB each)
+- Model loaded on single GPU in float16
+
+### Hyperparameters
+| Parameter | Value | Rationale |
+|-----------|-------|-----------|
+| GPT-4.1 temperature | 0 | Deterministic outputs |
+| Ridge alpha | 1.0 | Default regularization |
+| t-SNE perplexity | 30 | Standard for ~300 points |
+| Cross-validation folds | 5 | Standard |
+| Random seed | 42 | Reproducibility |
+
+## 5. Results
+
+### 5.1 Behavioral Results (GPT-4.1)
+
+GPT-4.1 achieves **perfect accuracy** on all tasks:
+
+| Task | Decimal (0-69) | Vigesimal (70-99) | Overall |
+|------|---------------|-------------------|---------|
+| French→Number | 100% (70/70) | 100% (30/30) | 100% |
+| Number→French | 100% (70/70) | 100% (30/30) | 100% |
+| Belgian French→Number | N/A | 100% (30/30) | 100% |
+| Arithmetic | 100% (35/35) | 100% (49+22) | 100% |
+
+**Counting sequences**: All 6 sequences (3 vigesimal boundaries + 3 controls) produced perfectly correct French number words with correct vigesimal transitions.
+
+**Interpretation**: At the behavioral level, GPT-4.1 has fully internalized the French counting system, including all vigesimal irregularities. There is no behavioral deficit for vigesimal numbers. This is consistent with the hypothesis that modern frontier models have memorized the French counting system from their training data.
+
+### 5.2 Tokenization Analysis (Mistral 7B)
+
+Vigesimal French numbers require significantly more tokens:
+
+| Number Form | Mean Tokens (Decimal 20-69) | Mean Tokens (Vigesimal 70-99) |
+|------------|---------------------------|------------------------------|
+| French | 5.2 | **7.3** (+40%) |
+| Digit | 3.0 | 3.0 |
+
+The tokenization plot shows dramatic spikes in the vigesimal range, with &#34;quatre-vingt-dix-sept&#34; (97) requiring **10 tokens** vs 3 tokens for the digit &#34;97&#34;. This increased token count means the model must propagate numeric information through more transformer steps.
+
+### 5.3 Representational Analysis (Mistral 7B, Last Layer)
+
+#### Ordinal Correlation (Spearman ρ between representation distances and numeric distances)
+
+| Form | Spearman ρ | p-value |
+|------|-----------|---------|
+| French | 0.520 | &lt; 10⁻³⁰⁰ |
+| Digit | 0.485 | 4.15 × 10⁻²⁹⁰ |
+| **Belgian French** | **0.591** | &lt; 10⁻³⁰⁰ |
+
+Belgian French representations preserve numeric ordering better than both standard French and digit representations. This is a striking finding: the *regular* decimal system (septante, huitante, nonante) produces internal representations that are more numerically organized than the vigesimal system.
+
+#### Nearest Neighbor Error (distance between a number and its representational nearest neighbor)
+
+| Form | Vigesimal NN Error | Decimal NN Error |
+|------|-------------------|-----------------|
+| French | 4.3 ± 4.3 | 2.7 ± 1.7 |
+| Digit | 5.6 ± 5.2 | 3.1 ± 3.4 |
+| Belgian French | 3.5 ± 2.3 | 2.7 ± 1.7 |
+
+Vigesimal numbers have higher NN error (representational nearest neighbor is further from numeric neighbor) across all forms, with Belgian French showing improvement over standard French in the vigesimal range.
+
+#### Cross-Form Similarity
+
+| Comparison | Mean Cosine Similarity |
+|-----------|----------------------|
+| French-Digit | 0.907 |
+| Belgian-Digit | 0.907 |
+| **French-Belgian** | **0.995** |
+
+French and Belgian French representations are nearly identical (0.995 cosine similarity), suggesting the model maps both forms to a shared underlying representation despite their surface differences.
+
+### 5.4 Linear Probe Results
+
+| Form | MAE (overall) | R² | Vigesimal MAE | Decimal MAE |
+|------|-------------|-----|---------------|-------------|
+| French | 2.72 ± 0.65 | 0.979 | 2.37 | 1.82 |
+| Belgian | 2.79 ± 0.53 | 0.977 | 2.54 | 1.77 |
+| Digit | 4.18 ± 1.19 | 0.943 | 4.37 | 3.49 |
+
+Surprisingly, **French number words produce more linearly decodable representations** (R²=0.979) than digit strings (R²=0.943). This suggests that the contextualized prompt &#34;Le nombre est [word]&#34; provides richer numeric information than raw digits. The vigesimal MAE is higher than decimal MAE within each form.
+
+### 5.5 Vigesimal Structure Analysis
+
+The key question: do vigesimal numbers cluster by **linguistic base** or **numeric value**?
+
+**Results for numbers 70-99**:
+- **70% of nearest neighbors share a linguistic base** (e.g., 83&#39;s NN is 93, both &#34;quatre-vingt-X&#34;)
+- Only 53.3% of NNs are within ±2 numerically
+
+Notable linguistic clustering examples:
+- 80 (&#34;quatre-vingts&#34;) → NN is 95 (&#34;quatre-vingt-quinze&#34;), distance = 15
+- 83 (&#34;quatre-vingt-trois&#34;) → NN is 93 (&#34;quatre-vingt-treize&#34;), distance = 10
+- 73 (&#34;soixante-treize&#34;) → NN is 63 (&#34;soixante-trois&#34;), distance = 10
+- 91 (&#34;quatre-vingt-onze&#34;) → NN is 82 (&#34;quatre-vingt-deux&#34;), distance = 9
+
+**Control comparison (decimal 20-69)**: Only 34% of NNs are within ±2 numerically.
+
+**Mann-Whitney U test** (vigesimal NN distance &gt; decimal): U = 708.0, p = 0.667 (not significant). The vigesimal numbers are not statistically worse on average, but show a bimodal pattern: many have NN distance = 1 (following numeric order), while some have very large NN distances driven by linguistic similarity.
+
+### 5.6 RSA (Representational Similarity Analysis)
+
+| Comparison | Spearman ρ |
+|-----------|-----------|
+| French vs Ideal Numeric | 0.520 |
+| Digit vs Ideal Numeric | 0.485 |
+| **Belgian vs Ideal Numeric** | **0.591** |
+| French vs Digit | 0.656 |
+| Belgian vs Digit | 0.661 |
+| **French vs Belgian** | **0.890** |
+
+The RDMs (Representational Dissimilarity Matrices) show clear block structure for French and Belgian representations that partially mirrors numeric structure but also reflects linguistic groupings. Belgian French&#39;s RDM is most correlated with the ideal numeric RDM.
+
+### 5.7 Layer Progression
+
+Number representations develop across layers:
+
+| Layer | Probe MAE | Spearman ρ |
+|-------|----------|-----------|
+| 0 (embed) | 31.0 | N/A |
+| 8 | 18.8 | 0.526 |
+| 16 (middle) | 16.4 | 0.525 |
+| 24 | 18.4 | 0.490 |
+| 32 (last) | 15.0 | 0.520 |
+
+Linear probe accuracy improves throughout the network, with the best performance at the final layer (MAE=15.0). The Spearman correlation peaks at early-to-middle layers and dips in later layers before recovering — consistent with the model processing linguistic features first and reconstructing numeric information later.
+
+## 6. Discussion
+
+### Key Findings
+
+1. **Behavioral mastery**: GPT-4.1 has fully mastered French counting, including all vigesimal irregularities. The hypothesis that vigesimal numbers cause behavioral errors is **refuted** for frontier models.
+
+2. **Representational fingerprint**: Despite behavioral perfection, Mistral 7B&#39;s internal representations reveal the vigesimal structure. Numbers like 83 and 93 are representationally similar because they share the &#34;quatre-vingt-&#34; prefix, even though they are 10 apart numerically.
+
+3. **Belgian French advantage**: The regular Belgian French system (septante/huitante/nonante) produces representations with better ordinal structure (ρ=0.591 vs 0.520), confirming that linguistic regularity aids numeric representation.
+
+4. **French &gt; Digit for probing**: Counterintuitively, French word representations are more linearly decodable for number values than digit representations. This may be because the contextual prompt activates richer semantic number representations.
+
+5. **Token cost**: Vigesimal numbers require 40% more tokens, creating a computational overhead that may matter in resource-constrained settings.
+
+### Surprises
+
+- The **perfect behavioral accuracy** was unexpected — we hypothesized 10-30% lower accuracy on vigesimal numbers. This reflects how thoroughly modern LLMs have memorized French.
+- The **linguistic clustering** in vigesimal representations is strong (70% of NNs share a linguistic base) even though the model clearly &#34;knows&#34; the numeric values (R²=0.979 probe accuracy).
+- **French-Belgian similarity** of 0.995 suggests the model maps both forms to nearly the same internal representation, despite very different surface forms.
+
+### Limitations
+
+1. **Single model for representation analysis**: We used only Mistral 7B. The findings may differ for other architectures.
+2. **Last-token representations**: We extracted hidden states at the last token position. Average pooling or other aggregation strategies might yield different results.
+3. **Context sensitivity**: The prompt template &#34;Le nombre est X&#34; may influence representations. Other contexts could produce different patterns.
+4. **Limited number range**: We focused on 0-99. The vigesimal system also appears in hundreds (e.g., &#34;deux-cent-quatre-vingt-dix-sept&#34; = 297).
+5. **No causal intervention**: We observed representational differences but did not establish causality through activation patching.
+
+## 7. Conclusions
+
+### Summary
+Modern LLMs have fully internalized the French vigesimal counting system at the behavioral level, achieving perfect accuracy on number conversion, arithmetic, and counting tasks. However, internal representations in Mistral 7B reveal that the model organizes vigesimal numbers by their linguistic structure — numbers sharing the same prefix (e.g., &#34;quatre-vingt-&#34;) cluster together regardless of numeric distance. Belgian French&#39;s regular decimal system produces representations with better ordinal structure.
+
+### Implications
+- **For NLP researchers**: The gap between behavioral performance and representational organization suggests that probing studies can reveal structure invisible to behavioral benchmarks.
+- **For multilingual applications**: The 40% tokenization overhead for vigesimal numbers may affect cost and latency in French-language applications.
+- **For cognitive science**: The model&#39;s representational pattern (clustering by linguistic base) parallels findings in human numerical cognition research, where the French vigesimal system creates processing difficulties.
+
+### Confidence in Findings
+We are highly confident in the behavioral results (deterministic API calls, 100% accuracy) and moderately confident in the representational findings (consistent across multiple analyses but limited to one model and one context template).
+
+## 8. Next Steps
+
+### Immediate Follow-ups
+1. **Causal interventions**: Patch vigesimal representations with decimal equivalents to test if the model&#39;s internal representation causally affects outputs
+2. **Multi-model comparison**: Test Llama 3.1 8B, Qwen2.5 7B to check if findings generalize
+3. **Extended range**: Analyze 100-999 where vigesimal constructions appear in more complex forms
+
+### Alternative Approaches
+- Sinusoidal/circular probes (per literature) instead of linear Ridge regression
+- Attention pattern analysis to see which tokens attend to which during vigesimal processing
+- Fine-grained tokenization analysis of how subword tokens map to numeric meaning
+
+### Open Questions
+- Does the linguistic clustering affect downstream task performance on tasks that require numeric reasoning with French numbers?
+- Can we find specific attention heads responsible for the &#34;vigesimal to decimal&#34; conversion?
+- How do other languages with irregular number systems (Danish, Georgian) compare?
+
+## References
+
+1. Bhattacharya et al. (2025). &#34;Investigating the Interaction of Linguistic and Mathematical Reasoning Using Multilingual Number Puzzles.&#34; EMNLP.
+2. Stefanik et al. (2025). &#34;Unravelling the Mechanisms of Manipulating Numbers in Language Models.&#34; arXiv:2510.26285.
+3. Levy &amp; Geva (2024). &#34;Language Models Encode Numbers Using Digit Representations in Base 10.&#34; arXiv:2410.11781.
+4. Davies et al. (2025). &#34;Language Models Do Not Embed Numbers Continuously.&#34; arXiv:2510.08009.
+5. Kadlcik et al. (2025). &#34;Pre-trained Language Models Learn Remarkably Accurate Representations of Numbers.&#34; EMNLP.
+6. Various (2026). &#34;Mechanistic Interpretability of Large-Scale Counting in LLMs.&#34; arXiv:2601.02989.
+7. GraphPKU (2024). &#34;Number Cookbook: Number Understanding of Language Models.&#34; ICLR 2025.
+8. Singh &amp; Strouse (2024). &#34;Tokenization Counts.&#34; arXiv:2402.14903.
+9. Marjieh et al. (2025). &#34;What is a Number, That a Large Language Model May Know It?&#34; arXiv:2502.01540.
+10. Rahman &amp; Mishra (2025). &#34;A Fragile Number Sense.&#34; arXiv:2509.06332.
+
+
+════════════════════════════════════════════════════════════════════════════════
+                            RESEARCH PLAN
+════════════════════════════════════════════════════════════════════════════════
+
+# Research Plan: How Does the Model Count in French?
+
+## Motivation &amp; Novelty Assessment
+
+### Why This Research Matters
+French has a famously irregular counting system where numbers 70-99 use vigesimal (base-20) constructions: &#34;soixante-dix&#34; (60+10=70), &#34;quatre-vingts&#34; (4×20=80), &#34;quatre-vingt-dix&#34; (4×20+10=90). This creates a natural experiment: do LLMs represent these numbers by their linguistic surface form or by their underlying numeric value? Understanding this reveals how LLMs bridge symbolic language and mathematical reasoning.
+
+### Gap in Existing Work
+Per the literature review, no study has specifically probed French number representations in LLMs. Prior work shows: (1) models use base-10 circular representations internally (Levy &amp; Geva 2024), (2) implicit compositional operators are a bottleneck (Bhattacharya et al. 2025), (3) sinusoidal probes can recover number values from hidden states (Stefanik et al. 2025). But nobody has tested whether vigesimal French numbers create representational difficulties.
+
+### Our Novel Contribution
+We conduct the first systematic study of how LLMs handle French vigesimal counting through two complementary approaches:
+1. **Behavioral evaluation**: Testing GPT-4.1 on French number tasks to measure accuracy differences between vigesimal (70-99) and decimal (20-69) ranges
+2. **Representational analysis**: Using a local model (Mistral 7B) to extract and visualize internal representations of French numbers, comparing vigesimal vs. decimal vs. Belgian French vs. digit forms
+
+### Experiment Justification
+- **Experiment 1 (Number Conversion)**: Tests whether models can correctly map French words to numbers and back, isolating the vigesimal difficulty
+- **Experiment 2 (Arithmetic in French)**: Tests whether vigesimal numbers cause more arithmetic errors
+- **Experiment 3 (Counting Sequences)**: Tests whether models can generate correct sequences across vigesimal boundaries (69→70, 79→80, 89→90)
+- **Experiment 4 (Representation Analysis)**: Maps internal representations to understand *why* errors occur — is the model confused about the value or just the linguistic form?
+
+## Research Question
+How do LLMs internally represent and process French vigesimal numbers (70-99), and does the irregular counting system cause systematic difficulties compared to regular decimal numbers?
+
+## Hypothesis Decomposition
+H1: Models make more errors on vigesimal French numbers (70-99) than on decimal numbers (20-69) in conversion tasks
+H2: Arithmetic involving vigesimal numbers produces more errors than purely decimal arithmetic
+H3: Counting sequences break at vigesimal boundaries (69→70, 79→80, 89→90)
+H4: Internal representations of vigesimal French numbers are more distant from their true numeric value than decimal numbers
+H5: Belgian French equivalents (septante, huitante, nonante) produce representations closer to true numeric value than standard French vigesimal forms
+
+## Proposed Methodology
+
+### Approach
+Two-pronged: behavioral evaluation via API + representational analysis via local model.
+
+### Experimental Steps
+1. **Setup**: Install dependencies, prepare datasets
+2. **Exp 1 - Conversion**: GPT-4.1 converts French→digit and digit→French for 0-99, measuring accuracy by vigesimal status
+3. **Exp 2 - Arithmetic**: GPT-4.1 performs addition in French, comparing vigesimal-involving vs decimal-only tasks
+4. **Exp 3 - Counting**: GPT-4.1 generates counting sequences, testing boundary crossings
+5. **Exp 4 - Representations**: Extract Mistral 7B hidden states for French/Belgian/English/digit number forms, visualize with t-SNE/PCA, measure representational distances
+
+### Baselines
+- Decimal range (20-69) as control for vigesimal range (70-99)
+- Belgian French as control for standard French
+- English words and digit strings as additional reference points
+
+### Evaluation Metrics
+- Exact match accuracy for conversion/arithmetic/counting tasks
+- Error rate by number category (vigesimal vs decimal)
+- Cosine similarity between number representations and ground truth ordering
+- t-SNE/PCA visualization of representation space
+
+### Statistical Analysis Plan
+- Chi-squared tests for accuracy differences between vigesimal and decimal groups
+- Effect sizes (Cohen&#39;s h for proportions)
+- Bootstrap confidence intervals for accuracy estimates
+
+## Expected Outcomes
+- Vigesimal numbers will show 10-30% lower accuracy on behavioral tasks
+- Belgian French will perform closer to decimal French
+- Internal representations will show the vigesimal numbers are noisier/more distant from ordinal ground truth
+
+## Timeline and Milestones
+1. Environment setup + data prep: 10 min
+2. Behavioral experiments (API calls): 30 min
+3. Representational analysis (local model): 45 min
+4. Analysis + visualization: 30 min
+5. Documentation: 20 min
+
+## Potential Challenges
+- API rate limits → batch with delays
+- Model download time for Mistral 7B → use smaller model if needed
+- Token limits for long French number words → test beforehand
+
+## Success Criteria
+- Clear evidence of differential performance on vigesimal vs decimal numbers
+- Interpretable visualization of the representational structure
+- Statistical tests with p &lt; 0.05 for key comparisons
+
+
+════════════════════════════════════════════════════════════════════════════════
+                          LITERATURE REVIEW
+════════════════════════════════════════════════════════════════════════════════
+
+# Literature Review: How Does the Model Count in French?
+
+## Research Area Overview
+
+This review surveys the intersection of three active research areas: (1) how LLMs internally represent numbers, (2) mechanistic interpretability of arithmetic and counting, and (3) cross-linguistic numeral systems in language models. The French counting system is a compelling test case because it combines standard decimal counting (1-69) with a vigesimal (base-20) system for 70-99 (e.g., &#34;quatre-vingt-dix-sept&#34; = 4×20+10+7 = 97), requiring implicit multiplication and addition operations embedded in language.
+
+## Key Papers
+
+### Paper 1: Investigating the Interaction of Linguistic and Mathematical Reasoning Using Multilingual Number Puzzles
+- **Authors:** Bhattacharya, Papadimitriou, Davidson, Alvarez-Melis (Harvard)
+- **Year:** 2025 (EMNLP)
+- **Source:** arXiv:2506.13886
+- **Key Contribution:** Demonstrates that LLMs fail at cross-linguistic numeral puzzles not because of mathematical difficulty but because they cannot infer **implicit compositional operators** (addition, multiplication) from numeral structure. Models succeed when operators are made explicit with familiar symbols (+, ×).
+- **Methodology:** 10 Linguistics Olympiad problems across 10 languages (Drehu, Georgian, Yoruba, etc.), testing o1-mini and DeepSeek-R1 under 4 operator conditions (implicit, explicit+familiar, explicit+unfamiliar symbol, explicit+unfamiliar word).
+- **Datasets:** LingOly and Linguini benchmarks (filtered for number systems).
+- **Results:** Familiar explicit operators (+, ×) yield ceiling performance; implicit operators lead to failure. Language name context boosts performance by ~30%, suggesting memorization over reasoning.
+- **Code:** https://github.com/antara-raaghavi/multilingual-number-puzzles
+- **Relevance:** Directly applicable — French vigesimal numbers contain exactly the kind of implicit operators (60+10=70, 4×20=80) that this paper shows models cannot infer. The authors explicitly cite French as an example vigesimal system analogous to their test languages.
+
+### Paper 2: Unravelling the Mechanisms of Manipulating Numbers in Language Models
+- **Authors:** Stefanik, Kadlcik, Mickus, Spiegel, Kuchar (Masaryk U., U. Helsinki)
+- **Year:** 2025
+- **Source:** arXiv:2510.26285
+- **Key Contribution:** Shows that LLMs converge on **sinusoidal representations** of numbers that are universal across models, layers, and contexts. Identifies specific layers where errors are introduced and shows they can be mitigated.
+- **Methodology:** Sinusoidal probes, RSA, Fourier decomposition across 8 LLMs (Llama 3, OLMo 2, Phi 4 families). TunedLens comparisons. Natural language contexts across arithmetic, temporal, medical, and culinary domains.
+- **Results:** Sinusoidal probes consistently outperform linear/log probes. Cross-model Fourier frequency IoU = 1.0 for top-63 frequencies. Universal probes achieve 95-100% cross-layer accuracy. Up to 94.4% of surfaced errors correspond to correct internal computations that failed to surface.
+- **Code:** https://github.com/prompteus/numllama
+- **Relevance:** Establishes the probing methodology needed to investigate French number representations. The finding that representations are universal raises the question: does this universality hold for French number words, or does the vigesimal structure create distinct patterns?
+
+### Paper 3: Language Models Encode Numbers Using Digit Representations in Base 10
+- **Authors:** Levy, Geva (Tel Aviv University)
+- **Year:** 2024
+- **Source:** arXiv:2410.11781
+- **Key Contribution:** Demonstrates that LLMs use **per-digit circular representations in base 10**, not continuous scalar encodings. Probes can recover individual digit values but not full number values.
+- **Methodology:** Circular probes mapping digit values to unit circle positions, tested on Llama 3 8B and Mistral 7B. Causal interventions (flipping digit representations during inference).
+- **Results:** Base-10 digit probes achieve 91-96% accuracy; all other bases (2-14) below 0.2. ~80% of arithmetic errors affect only a single digit. Probes partially generalize to English word forms (68.6% peak).
+- **Code:** https://github.com/amitlevy/base10
+- **Relevance:** Critical finding — models represent numbers in base 10 internally, even when surface forms use different systems. French vigesimal words must be mapped to base-10 digit representations, creating a mismatch between linguistic form and internal representation.
+
+### Paper 4: Language Models Do Not Embed Numbers Continuously
+- **Authors:** Davies et al.
+- **Year:** 2025
+- **Source:** arXiv:2510.08009
+- **Key Contribution:** Shows that embedding models&#39; number representations are far from clean continuous scalar encodings. String artifacts, digit patterns, and tokenization effects dominate the embedding space.
+- **Methodology:** PCA analysis of number embeddings from OpenAI, Google Gemini, and Voyage AI models. Linear reconstruction, explained variance analysis.
+- **Results:** R² ≥ 0.95 for value reconstruction, but first PC explains ≤40% of variance. Negative numbers and large magnitudes degrade representations further.
+- **Relevance:** Predicts that French number words would produce even more complex embedding structures due to the additional string-level variation in vigesimal forms.
+
+### Paper 5: Pre-trained Language Models Learn Remarkably Accurate Representations of Numbers
+- **Authors:** Kadlcik, Stefanik, Mickus, Spiegel, Kuchar
+- **Year:** 2025 (EMNLP)
+- **Source:** arXiv:2506.08966
+- **Key Contribution:** Novel sinusoidal-basis probe achieves near-perfect accuracy in decoding numeric values from LLM embeddings, overturning prior findings of imprecise representations.
+- **Methodology:** Sinusoidal probe (f_sin) using Fourier basis as inductive bias, tested on Llama 3, Phi 4, OLMo 2 (1B-72B parameters).
+- **Relevance:** Provides the probing tool to test whether French number-word embeddings encode magnitude as precisely as digit tokens.
+
+### Paper 6: Mechanistic Interpretability of Large-Scale Counting in LLMs
+- **Authors:** (Various)
+- **Year:** 2026
+- **Source:** arXiv:2601.02989
+- **Key Contribution:** Shows counting in LLMs is a layerwise process that saturates beyond ~10 items due to depth constraints. Proposes System-2 decomposition strategy.
+- **Methodology:** CountScope probing, attention analysis, causal mediation analysis on Qwen2.5 7B, Llama 3 8B, Gemma 3 27B.
+- **Results:** Numbers encoded with logarithmic compression (mental number line). Specific attention heads mediate count information transfer. Systematic biases toward round numbers.
+- **Relevance:** French vigesimal number words are longer (more tokens) than English equivalents, potentially consuming more transformer depth for the same count.
+
+### Paper 7: Number Cookbook: Number Understanding of Language Models and How to Improve It
+- **Authors:** (GraphPKU)
+- **Year:** 2024 (ICLR 2025)
+- **Source:** arXiv:2411.03766
+- **Key Contribution:** NUPA benchmark with 4 representations × 17 tasks = 41 combinations. Shows performance degrades sharply with number length and that one-digit tokenizers outperform multi-digit.
+- **Code:** https://github.com/GraphPKU/number_cookbook
+- **Relevance:** Benchmark framework and metrics (digit match) adaptable for French number evaluation. Tokenization findings directly relevant since French words tokenize differently from digits.
+
+### Paper 8: Tokenization Counts: The Impact of Tokenization on Arithmetic in Frontier LLMs
+- **Authors:** Singh, Strouse (UCL, Google DeepMind)
+- **Year:** 2024
+- **Source:** arXiv:2402.14903
+- **Key Contribution:** Shows tokenization direction (L→R vs R→L) significantly impacts arithmetic accuracy, with R→L improving by up to 20%.
+- **Relevance:** French number words tokenize very differently from Arabic digits, creating unique tokenization-dependent biases.
+
+### Paper 9: What is a Number, That a Large Language Model May Know It?
+- **Authors:** Marjieh, Veselovsky, Griffiths, Sucholutsky (Princeton, NYU)
+- **Year:** 2025
+- **Source:** arXiv:2502.01540
+- **Key Contribution:** LLMs learn entangled representations blending string-level (edit distance) and numerical (log-linear magnitude) properties. Context reduces but cannot eliminate this entanglement.
+- **Relevance:** Very high — French vigesimal words create string similarities among numerically distant numbers (e.g., &#34;quatre-vingt-un&#34; [81] similar to &#34;quatre-vingt-onze&#34; [91]), predicting distinctive entanglement patterns.
+
+### Paper 10: A Fragile Number Sense
+- **Authors:** Rahman, Mishra (Stanford, SLAC)
+- **Year:** 2025
+- **Source:** arXiv:2509.06332
+- **Key Contribution:** LLM numerical reasoning is fragile — models succeed at deterministic tasks but fail at combinatorial puzzles, revealing pattern-matching over genuine number sense.
+- **Relevance:** French counting irregularities may expose additional fragilities not visible in English.
+
+## Common Methodologies
+
+- **Probing (Linear/Sinusoidal/Circular):** Used in Papers 2, 3, 5 to decode number values from hidden states. Sinusoidal probes outperform linear ones.
+- **Causal Interventions:** Papers 3, 6 use activation patching to establish causal relationships between representations and outputs.
+- **Similarity Analysis:** Paper 9 uses pairwise similarity judgments and RSA to characterize representation structure.
+- **Behavioral Evaluation:** Papers 1, 7, 8, 10 evaluate model outputs on numerical tasks.
+
+## Standard Baselines
+- **Models:** Llama 3/3.1 (8B, 70B), Mistral 7B, GPT-4o, Qwen2.5 7B, OLMo 2, Phi 4
+- **Tasks:** Addition, comparison, counting, digit extraction, number-to-word conversion
+- **Metrics:** Exact match, digit match, classification accuracy, probe R²
+
+## Evaluation Metrics in the Literature
+- **Exact Match:** Binary correct/incorrect on outputs
+- **Digit Match:** Per-digit accuracy (from Number Cookbook)
+- **Probe Accuracy:** Classification accuracy of probes on hidden states
+- **RSA Scores:** Representational similarity between models/layers
+- **Fourier IoU:** Overlap of dominant frequencies in number embeddings
+
+## Datasets in the Literature
+- **LingOly/Linguini:** Cross-linguistic number system puzzles (Paper 1)
+- **NUPA Benchmark:** 41 numerical task combinations (Paper 7)
+- **Synthetic counting tasks:** Lists of items for counting (Paper 6)
+- **MetaMathQA, DROP, AQuA-RAT:** Arithmetic in context (Paper 2)
+- **No existing French number dataset** was found — we created one for this project.
+
+## Gaps and Opportunities
+
+1. **No study has probed French number representations specifically.** All probing work (Papers 2, 3, 5) uses English contexts or digit tokens. The vigesimal system is an untested case.
+2. **Implicit operator inference is unsolved.** Paper 1 shows models cannot infer implicit compositional operations — exactly what French numbers require.
+3. **The base-10 internal representation creates a mismatch.** Paper 3 shows models use base-10 circular encodings internally. French vigesimal words must be mapped to base-10, but no one has studied this mapping.
+4. **String-number entanglement in French is unexplored.** Paper 9&#39;s methodology could reveal how French vigesimal word structure creates unique entanglement patterns.
+5. **Belgian/Swiss French provides a natural control.** Belgian French uses septante (70), huitante (80), nonante (90) — standard decimal words. Comparing French vs. Belgian French representations would isolate the effect of vigesimal structure.
+
+## Recommendations for Our Experiment
+
+Based on the literature:
+
+- **Primary approach:** Use sinusoidal and circular probes (from Papers 2, 3, 5) to analyze how models represent French numbers internally, comparing digit tokens, English words, standard French words, and Belgian French words.
+- **Recommended datasets:** Our custom French number dataset (0-999) with vigesimal/decimal annotations, arithmetic tasks, counting prompts, and comparison tasks.
+- **Recommended baselines:** Compare French vs. English vs. Belgian French vs. digit representations at each layer.
+- **Recommended metrics:** Probe accuracy (sinusoidal and circular), digit match for arithmetic tasks, RSA between French and English number representations.
+- **Recommended models:** Llama 3.1 8B (well-studied, multilingual), Mistral 7B (strong French language support), Qwen2.5 7B.
+- **Tools:** TransformerLens or nnsight for activation extraction, circular probes from base10 repo.
+- **Key experiment:** Test whether vigesimal French numbers (70-99) show lower probe accuracy, different dominant Fourier frequencies, or higher string-number entanglement compared to decimal-range numbers (1-69) and Belgian French equivalents.
+
+
+════════════════════════════════════════════════════════════════════════════════
+                          PAPER REQUIREMENTS
+════════════════════════════════════════════════════════════════════════════════
+
+Generate a complete academic paper with the following structure:
+
+1. TITLE
+   - Clear, specific, informative
+   - Should convey main finding or contribution
+
+2. AUTHOR
+   - Use this exact author line in the \author{} block: Ari Holtzman and NeuriCo
+
+3. ABSTRACT (150-250 words)
+   - Problem statement
+   - Approach
+   - Key results
+   - Significance
+
+4. INTRODUCTION
+   - Research problem and motivation
+   - Gap in existing work
+   - Our contribution (be specific)
+   - Paper organization
+
+5. RELATED WORK
+   - Organized by theme/approach
+   - Position our work relative to prior work
+   - Cite papers from literature review
+
+6. METHODOLOGY
+   - Clear description of approach
+   - Experimental setup
+   - Datasets used
+   - Evaluation metrics
+   - Baselines
+
+7. RESULTS
+   - Present results with tables and figures
+   - Statistical analysis
+   - Comparison to baselines
+   - Ablation studies (if applicable)
+
+8. DISCUSSION
+   - Interpretation of results
+   - Limitations
+   - Broader implications
+
+9. CONCLUSION
+   - Summary of contributions
+   - Key findings
+   - Future work
+
+10. REFERENCES
+   - BibTeX format
+   - All cited papers
+
+════════════════════════════════════════════════════════════════════════════════
+                          OUTPUT FORMAT
+════════════════════════════════════════════════════════════════════════════════
+
+Create a MODULAR LaTeX project with the following directory structure:
+
+paper_draft/
+├── main.tex              # Main file that imports all sections
+├── references.bib        # BibTeX references
+├── sections/
+│   ├── abstract.tex      # Abstract content
+│   ├── introduction.tex  # Introduction section
+│   ├── related_work.tex  # Related work section
+│   ├── methodology.tex   # Methodology section
+│   ├── results.tex       # Results section
+│   ├── discussion.tex    # Discussion section
+│   └── conclusion.tex    # Conclusion section
+├── figures/              # Directory for any generated figures
+├── tables/               # Directory for complex standalone tables
+└── appendix/             # Directory for appendix sections (if needed)
+
+INSTRUCTIONS:
+1. First, create the directory structure above (mkdir -p paper_draft/sections paper_draft/figures paper_draft/tables paper_draft/appendix)
+2. Write main.tex using the EXACT preamble for NEURIPS:
+
+   \documentclass{article}
+   \usepackage[final]{neurips_2025}  % NEURIPS style (neurips_2025.sty is in paper_draft/)
+   \usepackage[hidelinks]{hyperref}  % REQUIRED: clickable links
+   \usepackage{booktabs}  % REQUIRED: professional tables
+   \usepackage{graphicx}
+   \usepackage{amsmath,amssymb}
+
+   % Import command files
+   \input{commands/math}
+   \input{commands/general}
+   \input{commands/macros}
+
+   % Use this bibliography style:
+   \bibliographystyle{plainnat}
+
+   \author{Ari Holtzman and NeuriCo}
+
+   - Use \input{sections/...} to include each section
+   - Use \bibliography{references} for references
+3. Write each section file with COMPLETE content (no placeholders)
+4. Each section file should include its \section{} command
+5. Write references.bib with all citations in BibTeX format
+6. After writing all files, compile the paper:
+   cd paper_draft && pdflatex -interaction=nonstopmode main.tex && bibtex main && pdflatex -interaction=nonstopmode main.tex && pdflatex -interaction=nonstopmode main.tex
+
+This modular structure allows humans to easily:
+- Edit individual sections without navigating a large file
+- Track changes per section
+- Reuse sections across different paper versions
+
+════════════════════════════════════════════════════════════════════════════════
+                          QUALITY REQUIREMENTS
+════════════════════════════════════════════════════════════════════════════════
+
+- Academic tone throughout
+- All claims must be supported by data from the experiment report
+- Proper citations using \cite{} commands
+- Clear figures and tables with proper captions
+- NO placeholder text - every section must have real content
+- The paper MUST compile without errors
+- If compilation fails, debug and fix the LaTeX errors
+
+════════════════════════════════════════════════════════════════════════════════
+                          LAB WRITING STYLE
+════════════════════════════════════════════════════════════════════════════════
+
+Follow these lab-specific conventions to match our paper style:
+
+1. LANGUAGE STYLE:
+   - Use active voice: "We propose", "We examine", "We focus on"
+   - Be direct and confident: "Our main question is...", "We hypothesize that..."
+   - State things clearly and simply - prefer plain language over jargon
+   - Use bold questions as paragraph organizers: {\bf what is X?}
+   - Include specific quantitative claims: "8.97% over baseline"
+   - Avoid fancy wording: "utilize" → "use", "facilitate" → "help"
+
+2. INTRODUCTION STRUCTURE:
+   - Engaging hook (get to the point quickly)
+   - Problem importance
+   - Gap identification
+   - Your approach with method figure reference
+   - Quantitative preview of results
+   - Contribution bullets (3-4 items, action verbs)
+
+3. CONTRIBUTION LISTS:
+   \begin{itemize}[leftmargin=*,itemsep=0pt,topsep=0pt]
+       \item We propose...
+       \item We conduct...
+       \item We complement...
+   \end{itemize}
+
+4. MODULAR COMMANDS STRUCTURE:
+   Command templates are pre-copied to paper_draft/commands/:
+   - math.tex: Math notation macros
+   - general.tex: Formatting macros
+   - macros.tex: Project-specific term definitions (customize this for your paper)
+
+   In main.tex, include:
+   \input{commands/math}
+   \input{commands/general}
+   \input{commands/macros}
+
+5. REFERENCE CONVENTIONS:
+   Use reference macros from math.tex:
+   - \figref{fig:name} for "figure 1" (lowercase, in-sentence)
+   - \Figref{fig:name} for "Figure 1" (capitalized, start of sentence)
+   - \secref{sec:name} for "section 2"
+
+6. TEXT FORMATTING:
+   - Use \para{Header text} for bold paragraph headers
+   - Define method/dataset names with \textsc and \xspace:
+     \newcommand{\methodname}{\textsc{MethodName}\xspace}
+
+7. TABLE FORMATTING:
+   - Use booktabs package (no vertical lines)
+   - Use \resizebox{\textwidth}{!}{...} for wide tables
+   - Use @{} to remove padding at table edges
+   - Use \cmidrule(lr){x-y} for sub-headers
+   - Use \textsc{} for dataset/method names in headers
+   - Bold best results with {\bf ...}
+
+8. FIGURE FORMATTING:
+   - Use 0.32\textwidth for 3-column subfigures
+   - Use 0.95\linewidth for full-width figures
+   - Use \input{figures/legend} for shared legends
+   - Write self-contained captions explaining key observations
+
+9. RESULTS PRESENTATION:
+   - Define \increase and \decrease for colored arrows (green up, red down)
+   - Bold best results in tables
+   - Report confidence intervals when available
+
+10. ALGORITHM STYLING:
+    - Use algpseudocode with [noend]
+    - Use \triangleright for comments
+
+11. HYPERLINKS (REQUIRED):
+    - Always use \usepackage[hidelinks]{hyperref} or with colored links
+    - All citations, section refs, figure refs, table refs must be clickable
+    - This is essential for reader navigation
+
+════════════════════════════════════════════════════════════════════════════════
+                          WORKFLOW: REVIEW AND REFLECT
+════════════════════════════════════════════════════════════════════════════════
+
+Before calling finish, you MUST complete these review steps:
+
+1. REVIEW RESOURCES (at the start):
+   - Read .claude/skills/paper-writer/SKILL.md for detailed guidance
+   - Study templates/paper_writing/lab_style_guide.md for style conventions
+   - Browse paper_examples/ for formatting and language patterns
+
+2. SELF-REFLECTION (before finishing):
+   After writing all sections, review your work against these criteria:
+
+   LANGUAGE CHECK:
+   - [ ] Is the writing clear and jargon-free?
+   - [ ] Are claims specific with quantitative support?
+   - [ ] Is active voice used throughout?
+
+   FORMATTING CHECK:
+   - [ ] Does main.tex include \input{commands/math}, \input{commands/general}, \input{commands/macros}?
+   - [ ] Is hyperref package included for clickable references?
+   - [ ] Do tables use booktabs (no vertical lines)?
+   - [ ] Are best results bolded in tables?
+   - [ ] Are figures/tables properly captioned?
+
+   STRUCTURE CHECK:
+   - [ ] Does introduction follow: hook → importance → gap → approach → preview → contributions?
+   - [ ] Are contribution bullets specific with action verbs?
+   - [ ] Does the paper compile without errors?
+
+3. FIX ISSUES:
+   - Address any issues found in the self-reflection
+   - Re-compile and verify the PDF looks correct
+
+Only after completing this review should you consider the paper finished.

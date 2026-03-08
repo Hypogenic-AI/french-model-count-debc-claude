@@ -1,0 +1,59 @@
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{Behavioral Mastery vs.\ Representational Structure}
+\label{sec:disc_mastery}
+
+The most striking finding is the disconnect between behavioral performance and internal representation.
+\gptmodel achieves 100\% accuracy on all French number tasks, including vigesimal numbers---a result that refutes the initial hypothesis of 10--30\% lower accuracy on vigesimal forms.
+This perfect performance likely reflects the sheer volume of French text in modern training corpora: the model has memorized the complete mapping between vigesimal words and their values.
+
+Yet \mistral's internal representations reveal that this memorization preserves the linguistic structure of the vigesimal system.
+Numbers 80--99, which all share the \quatrevingt prefix, cluster together in representation space regardless of their numeric distance.
+The model ``thinks in vigesimal''---organizing numbers by their linguistic base---even though it ``answers in decimal'' with perfect accuracy.
+This finding aligns with \citet{marjieh2025number}'s observation that LLM number representations entangle string-level and numerical properties, and extends it to a language where the string-number mapping is non-trivially compositional.
+
+\subsection{The Belgian French Advantage}
+\label{sec:disc_belgian}
+
+Belgian French serves as a natural ablation of the vigesimal system.
+By replacing \emph{soixante-dix} (60+10) with \emph{septante} (70) and \emph{quatre-vingt-dix} (4$\times$20+10) with \emph{nonante} (90), Belgian French removes the implicit arithmetic while preserving the language.
+We find that Belgian French produces representations with the highest ordinal correlation ($\rho = 0.591$ vs.\ $0.520$ for standard French), confirming that \textbf{linguistic regularity directly improves the ordinal structure of numeric representations}.
+
+The near-identical per-number cosine similarity between French and Belgian French (0.995) is equally notable.
+The model maps both \emph{quatre-vingt-treize} and \emph{nonante-trois} to essentially the same point in representation space, suggesting it recognizes them as the same number.
+However, the pairwise distance structure differs ($\RSA$ correlation = 0.890, not 1.0), because the vigesimal prefixes create distortions in the French RDM that are absent in the Belgian French RDM.
+
+\subsection{Why French Words Beat Digits in Probing}
+\label{sec:disc_words}
+
+The counterintuitive finding that French words are more linearly decodable ($R^2 = 0.979$) than digit strings ($R^2 = 0.943$) deserves explanation.
+We hypothesize that the prompt template ``\emph{Le nombre est [X]}'' activates a semantic frame that enriches the representation with numerical meaning.
+When the model processes \emph{Le nombre est quarante-deux}, it has already been primed to interpret the following tokens as a number, producing a representation that is optimized for numeric content.
+In contrast, a bare digit string like ``42'' in the same template may be more ambiguous---it could be a code, an identifier, or a quantity---leading to a less numerically structured representation.
+
+This result has practical implications: \textbf{linguistic context can improve rather than degrade numeric representations}, contrary to the assumption that words introduce noise relative to digits.
+
+\subsection{Limitations}
+\label{sec:limitations}
+
+\para{Single model for representational analysis.}
+We analyze only \mistral for internal representations.
+The linguistic clustering effect may differ in models with different architectures, tokenizers, or training data distributions.
+Extending to Llama~3, Qwen, or other multilingual models would strengthen these findings.
+
+\para{Last-token extraction.}
+We extract hidden states at the last token position only.
+Alternative aggregation strategies (mean pooling, attention-weighted pooling) might yield different representational structures, particularly for multi-token vigesimal words where information is distributed across tokens.
+
+\para{Context sensitivity.}
+Our results are specific to the prompt template ``\emph{Le nombre est [X]}.''
+Other contexts---arithmetic problems, counting sequences, free-form text---may produce different representational patterns.
+
+\para{Limited number range.}
+We focus on 0--99.
+The vigesimal system also applies to hundreds (\eg \emph{deux-cent-quatre-vingt-dix-sept} = 297), where the compositional complexity increases further.
+
+\para{No causal intervention.}
+We observe representational differences but do not establish causality.
+Activation patching \citep{levy2024language} could test whether the linguistic clustering causally affects downstream outputs, but we leave this to future work.

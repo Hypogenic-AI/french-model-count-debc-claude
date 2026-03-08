@@ -1,0 +1,149 @@
+{
+  "behavioral_stats": {
+    "french_to_number": {
+      "experiment": "french_to_number",
+      "total": 100,
+      "correct": 100,
+      "accuracy": 1.0,
+      "vigesimal_total": 30,
+      "vigesimal_correct": 30,
+      "vigesimal_accuracy": 1.0,
+      "decimal_total": 70,
+      "decimal_correct": 70,
+      "decimal_accuracy": 1.0
+    },
+    "number_to_french": {
+      "experiment": "number_to_french",
+      "total": 100,
+      "correct": 100,
+      "accuracy": 1.0,
+      "vigesimal_total": 30,
+      "vigesimal_correct": 30,
+      "vigesimal_accuracy": 1.0,
+      "decimal_total": 70,
+      "decimal_correct": 70,
+      "decimal_accuracy": 1.0
+    },
+    "belgian_french": {
+      "experiment": "belgian_french_to_number",
+      "total": 30,
+      "correct": 30,
+      "accuracy": 1.0
+    },
+    "arithmetic": {
+      "experiment": "arithmetic",
+      "total": 100,
+      "correct": 100,
+      "accuracy": 1.0,
+      "vigesimal_input_total": 49,
+      "vigesimal_input_correct": 49,
+      "vigesimal_input_accuracy": 1.0,
+      "vigesimal_output_total": 22,
+      "vigesimal_output_correct": 22,
+      "vigesimal_output_accuracy": 1.0,
+      "no_vigesimal_total": 35,
+      "no_vigesimal_correct": 35,
+      "no_vigesimal_accuracy": 1.0
+    }
+  },
+  "statistical_tests": {
+    "french_to_number": {
+      "decimal_accuracy": 1.0,
+      "vigesimal_accuracy": 1.0,
+      "note": "Perfect or near-perfect accuracy, no statistical test needed"
+    },
+    "number_to_french": {
+      "decimal_accuracy": 1.0,
+      "vigesimal_accuracy": 1.0,
+      "note": "Near-perfect accuracy"
+    }
+  },
+  "representation_analysis": {
+    "model": "mistralai/Mistral-7B-v0.3",
+    "layer_indices": [
+      0,
+      8,
+      16,
+      24,
+      32
+    ],
+    "tokenization": {
+      "french_vigesimal_mean_tokens": 7.266666666666667,
+      "french_decimal_mean_tokens": 5.2,
+      "french_max_tokens": 10,
+      "digit_max_tokens": 3
+    },
+    "representation_analysis": {
+      "last": {
+        "ordinal_correlation": {
+          "french": {
+            "spearman_rho": 0.519754737857197,
+            "p_value": 0.0
+          },
+          "digit": {
+            "spearman_rho": 0.4847158715653001,
+            "p_value": 4.1522158707801624e-290
+          },
+          "belgian": {
+            "spearman_rho": 0.5912514236550487,
+            "p_value": 0.0
+          }
+        },
+        "pca_explained_variance": [
+          0.4960273802280426,
+          0.10083243995904922,
+          0.05476102605462074,
+          0.038975946605205536,
+          0.029376139864325523,
+          0.028291767463088036,
+          0.026720035821199417,
+          0.021326862275600433,
+          0.017681600525975227,
+          0.013861098326742649
+        ]
+      },
+      "middle": {
+        "ordinal_correlation": {
+          "french": {
+            "spearman_rho": 0.5254571124642162,
+            "p_value": 0.0
+          },
+          "digit": {
+            "spearman_rho": 0.41231261446939654,
+            "p_value": 1.7221045122835819e-202
+          },
+          "belgian": {
+            "spearman_rho": 0.4953071820485924,
+            "p_value": 8.545205696650227e-305
+          }
+        },
+        "pca_explained_variance": [
+          0.2778629958629608,
+          0.20259225368499756,
+          0.07609885931015015,
+          0.057431042194366455,
+          0.03309813514351845,
+          0.026401039212942123,
+          0.022548889741301537,
+          0.01941041834652424,
+          0.016464585438370705,
+          0.01583818532526493
+        ]
+      }
+    },
+    "cross_form_similarity": {
+      "french_digit": {
+        "mean": 0.9074270129203796,
+        "std": 0.02372460439801216
+      },
+      "belgian_digit": {
+        "mean": 0.9073498249053955,
+        "std": 0.024520620703697205
+      },
+      "french_belgian": {
+        "mean": 0.9947278499603271,
+        "std": 0.00935316737741232
+      }
+    }
+  }
+}

@@ -1,0 +1,28 @@
+\section{Related Work}
+\label{sec:related}
+
+\para{Number representations in LLMs.}
+A growing body of work investigates how language models encode numerical information.
+\citet{levy2024language} demonstrate that models use per-digit circular representations in base 10, achieving 91--96\% probe accuracy for individual digits in Llama~3 and \mistral.
+\citet{kadlcik2025pretrained} introduce sinusoidal-basis probes that achieve near-perfect accuracy in decoding numeric values, overturning earlier findings of imprecise number representations.
+\citet{stefanik2025unravelling} extend this work by showing that sinusoidal representations are universal across models, layers, and contexts, with cross-model Fourier frequency overlap of 1.0 for the top frequencies.
+\citet{davies2025language} caution that embedding-level representations are far from continuous scalar encodings, with string artifacts and tokenization effects dominating the embedding space.
+\citet{marjieh2025number} find that LLM number representations are entangled, blending string-level properties (edit distance) with numerical properties (log-linear magnitude).
+Our work extends this line of research to French vigesimal numbers, testing whether the base-10 internal representations documented in prior work accommodate numbers whose linguistic form encodes base-20 arithmetic.
+
+\para{Multilingual numerical reasoning.}
+\citet{bhattacharya2025investigating} study cross-linguistic numeral puzzles and find that LLMs fail not because of mathematical difficulty but because they cannot infer implicit compositional operators (addition, multiplication) from numeral structure.
+Their work explicitly identifies French as an example vigesimal system, though they do not probe French representations directly.
+\citet{rahman2025fragile} demonstrate that LLM numerical reasoning is fragile---models succeed at deterministic tasks but fail at combinatorial puzzles, revealing pattern matching over genuine number sense.
+Unlike these studies, which focus on behavioral evaluation, we complement behavioral analysis with representational probing to understand \emph{why} models succeed or fail.
+
+\para{Tokenization and arithmetic.}
+\citet{singh2024tokenization} show that tokenization direction significantly impacts arithmetic accuracy, with right-to-left tokenization improving performance by up to 20\%.
+\citet{graphpku2024number} establish the NUPA benchmark with systematic evaluation of number representations and find that performance degrades with number length and that single-digit tokenizers outperform multi-digit ones.
+\citet{counting2026mechanistic} analyze the mechanistic basis of counting in LLMs, finding logarithmic compression and specific attention heads that mediate count information.
+These findings are directly relevant to French vigesimal numbers, which require 40\% more tokens than their decimal counterparts, creating additional computational overhead for the transformer.
+
+\para{Positioning of our work.}
+Prior work on number representations has focused almost exclusively on English and digit tokens.
+We contribute the first study of French vigesimal representations, using Belgian French as a controlled comparison that isolates the effect of linguistic irregularity.
+Our combined behavioral-representational approach reveals structure invisible to behavioral benchmarks alone.

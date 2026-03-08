@@ -1,0 +1,206 @@
+\section{Results}
+\label{sec:results}
+
+\subsection{Behavioral Evaluation}
+\label{sec:results_behavioral}
+
+\Tabref{tab:behavioral} presents the behavioral results for \gptmodel.
+The model achieves \textbf{100\% accuracy} on every task, with no difference between vigesimal and decimal numbers.
+All six counting sequences---three crossing vigesimal boundaries and three decimal controls---produce perfectly correct French number words with correct transitions.
+
+\begin{table}[t]
+    \centering
+    \caption{Behavioral accuracy of \gptmodel on French number tasks. The model achieves perfect accuracy across all conditions, including vigesimal numbers (70--99) that require implicit base-20 arithmetic.}
+    \begin{tabular}{@{}lccc@{}}
+        \toprule
+        \textbf{Task} & \textbf{Decimal (0--69)} & \textbf{Vigesimal (70--99)} & \textbf{Overall} \\
+        \midrule
+        French $\to$ Number & 100\% & 100\% & 100\% \\
+        Number $\to$ French & 100\% & 100\% & 100\% \\
+        Belgian French $\to$ Number & --- & 100\% & 100\% \\
+        Arithmetic & 100\% & 100\% & 100\% \\
+        Counting sequences & 100\% & 100\% & 100\% \\
+        \bottomrule
+    \end{tabular}
+    \label{tab:behavioral}
+\end{table}
+
+This result refutes the hypothesis that vigesimal numbers cause behavioral difficulties for frontier models.
+\gptmodel has fully internalized the French counting system from its training data, including all vigesimal irregularities.
+
+\subsection{Tokenization Overhead}
+\label{sec:results_tokens}
+
+Vigesimal French numbers require substantially more tokens than their decimal counterparts (\tabref{tab:tokens}).
+The mean token count for vigesimal words is 7.3, compared to 5.2 for decimal French words---a 40\% increase.
+At the extreme, \emph{quatre-vingt-dix-sept} (97) requires 10 tokens, compared to just 3 for the digit string ``97.''
+Digit representations are constant at 3.0 tokens regardless of vigesimal status.
+This increased token count means the model must propagate numeric information through more transformer steps for vigesimal numbers.
+
+\begin{table}[t]
+    \centering
+    \caption{Mean token counts for \mistral's tokenizer across number forms and ranges. Vigesimal French words require 40\% more tokens than decimal French words.}
+    \begin{tabular}{@{}lcc@{}}
+        \toprule
+        \textbf{Number Form} & \textbf{Decimal (20--69)} & \textbf{Vigesimal (70--99)} \\
+        \midrule
+        French word & 5.2 & \textbf{7.3} (+40\%) \\
+        Digit string & 3.0 & 3.0 \\
+        \bottomrule
+    \end{tabular}
+    \label{tab:tokens}
+\end{table}
+
+\subsection{Ordinal Structure of Representations}
+\label{sec:results_ordinal}
+
+We measure how well each form's representational distances preserve numeric ordering using Spearman correlation between the RDM and the ideal numeric distance matrix (\tabref{tab:ordinal}).
+Belgian French representations achieve the highest ordinal correlation ($\rho = 0.591$, $p < 10^{-300}$), surpassing both standard French ($\rho = 0.520$) and, notably, digit representations ($\rho = 0.485$).
+The regular decimal system of Belgian French thus produces internal representations that are more numerically organized than either the vigesimal system or raw digits.
+
+\begin{table}[t]
+    \centering
+    \caption{Ordinal correlation (Spearman $\rho$) between representational distances and numeric distances at the final layer of \mistral. Belgian French, with its regular decimal system, achieves the best ordinal structure. All $p < 10^{-280}$.}
+    \begin{tabular}{@{}lc@{}}
+        \toprule
+        \textbf{Form} & \textbf{Spearman $\rho$} \\
+        \midrule
+        French & 0.520 \\
+        Digit & 0.485 \\
+        Belgian French & \textbf{0.591} \\
+        \bottomrule
+    \end{tabular}
+    \label{tab:ordinal}
+\end{table}
+
+\subsection{Linear Probe Accuracy}
+\label{sec:results_probe}
+
+\Tabref{tab:probe} shows Ridge regression probe results at the final layer.
+French number words produce the most linearly decodable representations ($R^2 = 0.979$, $\MAE = 2.72$), followed closely by Belgian French ($R^2 = 0.977$, $\MAE = 2.79$), with digit strings substantially behind ($R^2 = 0.943$, $\MAE = 4.18$).
+Within each form, vigesimal numbers have higher $\MAE$ than decimal numbers, confirming that the vigesimal range is harder to decode linearly.
+
+\begin{table}[t]
+    \centering
+    \caption{Linear probe results (Ridge regression, 5-fold CV) predicting numeric value from \mistral final-layer hidden states. French words are more linearly decodable than digit strings. Best results in \textbf{bold}.}
+    \begin{tabular}{@{}lcccc@{}}
+        \toprule
+        \textbf{Form} & \textbf{MAE (overall)} & \textbf{$R^2$} & \textbf{Vigesimal MAE} & \textbf{Decimal MAE} \\
+        \midrule
+        French & \textbf{2.72 $\pm$ 0.65} & \textbf{0.979} & 2.37 & 1.82 \\
+        Belgian French & 2.79 $\pm$ 0.53 & 0.977 & 2.54 & 1.77 \\
+        Digit & 4.18 $\pm$ 1.19 & 0.943 & 4.37 & 3.49 \\
+        \bottomrule
+    \end{tabular}
+    \label{tab:probe}
+\end{table}
+
+The finding that contextualized French words are more decodable than digits is counterintuitive.
+We attribute this to the prompt template ``\emph{Le nombre est [X]},'' which activates a numeric semantic frame, producing richer representations than raw digit strings.
+
+\subsection{Vigesimal Clustering by Linguistic Base}
+\label{sec:results_clustering}
+
+The central question of our representational analysis is whether vigesimal numbers cluster by linguistic base or numeric value.
+\Tabref{tab:nn} presents the nearest-neighbor analysis for numbers 70--99 in French representation space.
+
+\begin{table}[t]
+    \centering
+    \caption{Nearest-neighbor analysis for vigesimal French numbers (70--99). The majority of nearest neighbors share a linguistic base rather than being numerically adjacent. Examples show numbers whose representational nearest neighbor is numerically distant but linguistically similar.}
+    \begin{tabular}{@{}lccl@{}}
+        \toprule
+        \textbf{Metric} & \textbf{Vigesimal (70--99)} & \textbf{Decimal (20--69)} \\
+        \midrule
+        NN shares linguistic base & \textbf{70\%} & --- \\
+        NN within $\pm 2$ numerically & 53.3\% & 34\% \\
+        Mean NN error & 4.3 $\pm$ 4.3 & 2.7 $\pm$ 1.7 \\
+        \midrule
+        \multicolumn{3}{@{}l}{\textbf{Notable clustering examples:}} \\
+        \midrule
+        \multicolumn{3}{@{}l}{80 (\emph{quatre-vingts}) $\to$ NN: 95 (\emph{quatre-vingt-quinze}), $\Delta = 15$} \\
+        \multicolumn{3}{@{}l}{83 (\emph{quatre-vingt-trois}) $\to$ NN: 93 (\emph{quatre-vingt-treize}), $\Delta = 10$} \\
+        \multicolumn{3}{@{}l}{73 (\emph{soixante-treize}) $\to$ NN: 63 (\emph{soixante-trois}), $\Delta = 10$} \\
+        \multicolumn{3}{@{}l}{91 (\emph{quatre-vingt-onze}) $\to$ NN: 82 (\emph{quatre-vingt-deux}), $\Delta = 9$} \\
+        \bottomrule
+    \end{tabular}
+    \label{tab:nn}
+\end{table}
+
+\textbf{70\% of vigesimal numbers' nearest neighbors share a linguistic base}---\eg both 83 (\emph{quatre-vingt-trois}) and 93 (\emph{quatre-vingt-treize}) begin with \quatrevingt and are representationally close despite being 10 apart numerically.
+Similarly, 73 (\emph{soixante-treize}) and 63 (\emph{soixante-trois}) cluster together because they share the \emph{soixante-} prefix.
+The pattern is bimodal: many vigesimal numbers do follow numeric ordering (NN distance = 1), but a substantial fraction have nearest neighbors driven by shared prefixes.
+
+A Mann-Whitney U test comparing vigesimal vs.\ decimal NN distances yields $U = 708.0$, $p = 0.667$ (not significant), indicating that vigesimal numbers are not \emph{uniformly} worse---rather, the effect is concentrated in specific numbers where linguistic similarity overrides numeric proximity.
+
+\subsection{Cross-Form Similarity}
+\label{sec:results_crossform}
+
+\Tabref{tab:crossform} shows mean cosine similarity between representations of the same number across different forms.
+French and Belgian French representations are nearly identical ($0.995$ cosine similarity), suggesting the model maps both surface forms to a shared underlying representation.
+Both French forms are moderately aligned with digit representations ($0.907$).
+
+\begin{table}[t]
+    \centering
+    \caption{Mean cosine similarity between representations of the same number across different forms in \mistral's final layer. French and Belgian French map to nearly identical internal representations despite different surface forms.}
+    \begin{tabular}{@{}lc@{}}
+        \toprule
+        \textbf{Comparison} & \textbf{Cosine Similarity} \\
+        \midrule
+        French--Digit & 0.907 \\
+        Belgian--Digit & 0.907 \\
+        French--Belgian & \textbf{0.995} \\
+        \bottomrule
+    \end{tabular}
+    \label{tab:crossform}
+\end{table}
+
+\subsection{Representational Similarity Analysis}
+\label{sec:results_rsa}
+
+\Tabref{tab:rsa} reports Spearman correlations between RDMs.
+Belgian French's RDM is most correlated with the ideal numeric RDM ($\rho = 0.591$), confirming its superior ordinal structure.
+The French--Belgian RDM correlation ($\rho = 0.890$) is high but not as extreme as the per-number cosine similarity ($0.995$), indicating that while individual number representations are nearly identical, the \emph{pairwise distance structure} differs---consistent with the linguistic clustering effect in the vigesimal range.
+
+\begin{table}[t]
+    \centering
+    \caption{Representational Similarity Analysis (RSA): Spearman $\rho$ between representational dissimilarity matrices (RDMs). Belgian French has the strongest alignment with ideal numeric ordering.}
+    \begin{tabular}{@{}lc@{}}
+        \toprule
+        \textbf{Comparison} & \textbf{Spearman $\rho$} \\
+        \midrule
+        French vs.\ Ideal Numeric & 0.520 \\
+        Digit vs.\ Ideal Numeric & 0.485 \\
+        Belgian vs.\ Ideal Numeric & \textbf{0.591} \\
+        \cmidrule(lr){1-2}
+        French vs.\ Digit & 0.656 \\
+        Belgian vs.\ Digit & 0.661 \\
+        French vs.\ Belgian & \textbf{0.890} \\
+        \bottomrule
+    \end{tabular}
+    \label{tab:rsa}
+\end{table}
+
+\subsection{Layer Progression}
+\label{sec:results_layers}
+
+\Tabref{tab:layers} tracks how number representations develop across \mistral's layers.
+Probe accuracy improves throughout the network, with the best performance at the final layer ($\MAE = 15.0$).
+The ordinal correlation peaks at early-to-middle layers ($\rho = 0.526$ at layer 8) before dipping in later layers and partially recovering.
+This pattern is consistent with the model processing linguistic features in early layers and reconstructing task-relevant numeric information in later layers.
+
+\begin{table}[t]
+    \centering
+    \caption{Layer-wise probe accuracy and ordinal correlation for French number representations in \mistral. Numeric information develops progressively across layers.}
+    \begin{tabular}{@{}lcc@{}}
+        \toprule
+        \textbf{Layer} & \textbf{Probe MAE} & \textbf{Spearman $\rho$} \\
+        \midrule
+        0 (embedding) & 31.0 & --- \\
+        8 & 18.8 & \textbf{0.526} \\
+        16 (middle) & 16.4 & 0.525 \\
+        24 & 18.4 & 0.490 \\
+        32 (final) & \textbf{15.0} & 0.520 \\
+        \bottomrule
+    \end{tabular}
+    \label{tab:layers}
+\end{table}

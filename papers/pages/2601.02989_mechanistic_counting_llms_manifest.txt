@@ -1,0 +1,10 @@
+PDF: papers/2601.02989_mechanistic_counting_llms.pdf
+Total pages: 15
+Pages per chunk: 3
+
+Chunks:
+  2601.02989_mechanistic_counting_llms_chunk_001.pdf: pages 1-3
+  2601.02989_mechanistic_counting_llms_chunk_002.pdf: pages 4-6
+  2601.02989_mechanistic_counting_llms_chunk_003.pdf: pages 7-9
+  2601.02989_mechanistic_counting_llms_chunk_004.pdf: pages 10-12
+  2601.02989_mechanistic_counting_llms_chunk_005.pdf: pages 13-15

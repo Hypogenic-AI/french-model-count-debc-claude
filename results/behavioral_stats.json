@@ -1,0 +1,47 @@
+{
+  "french_to_number": {
+    "experiment": "french_to_number",
+    "total": 100,
+    "correct": 100,
+    "accuracy": 1.0,
+    "vigesimal_total": 30,
+    "vigesimal_correct": 30,
+    "vigesimal_accuracy": 1.0,
+    "decimal_total": 70,
+    "decimal_correct": 70,
+    "decimal_accuracy": 1.0
+  },
+  "number_to_french": {
+    "experiment": "number_to_french",
+    "total": 100,
+    "correct": 100,
+    "accuracy": 1.0,
+    "vigesimal_total": 30,
+    "vigesimal_correct": 30,
+    "vigesimal_accuracy": 1.0,
+    "decimal_total": 70,
+    "decimal_correct": 70,
+    "decimal_accuracy": 1.0
+  },
+  "belgian_french": {
+    "experiment": "belgian_french_to_number",
+    "total": 30,
+    "correct": 30,
+    "accuracy": 1.0
+  },
+  "arithmetic": {
+    "experiment": "arithmetic",
+    "total": 100,
+    "correct": 100,
+    "accuracy": 1.0,
+    "vigesimal_input_total": 49,
+    "vigesimal_input_correct": 49,
+    "vigesimal_input_accuracy": 1.0,
+    "vigesimal_output_total": 22,
+    "vigesimal_output_correct": 22,
+    "vigesimal_output_accuracy": 1.0,
+    "no_vigesimal_total": 35,
+    "no_vigesimal_correct": 35,
+    "no_vigesimal_accuracy": 1.0
+  }
+}

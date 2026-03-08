@@ -1,0 +1,73 @@
+\section{Methodology}
+\label{sec:method}
+
+We combine behavioral evaluation of a frontier model with representational analysis of an open-weight model.
+This two-pronged approach lets us assess both \emph{what} models produce and \emph{how} they internally organize numerical information.
+
+\subsection{Dataset Construction}
+\label{sec:data}
+
+No prior dataset exists for studying French number representations in LLMs.
+We construct a custom dataset covering numbers 0--999, with focused analysis on 0--99.
+Each entry contains the number, its standard French word form, a vigesimal flag, and the implicit arithmetic operations encoded in the word (if any).
+For the vigesimal range (70--99), we additionally include Belgian French forms (\eg \emph{septante} for 70, \emph{huitante} for 80, \emph{nonante} for 90), which use regular decimal constructions and serve as a controlled comparison.
+
+We derive four sub-datasets from this data:
+\begin{itemize}[leftmargin=*,itemsep=0pt,topsep=0pt]
+    \item \textbf{Number conversion} (100 items): French words and digit strings for numbers 0--99, used for bidirectional conversion tasks.
+    \item \textbf{Belgian French subset} (30 items): Vigesimal numbers 70--99 with both standard and Belgian French forms.
+    \item \textbf{Arithmetic tasks} (100 items): Addition problems with French operands, annotated for vigesimal involvement.
+    \item \textbf{Counting prompts} (6 items): Boundary-crossing sequences at vigesimal transitions ($69 \to 70$, $79 \to 80$, $89 \to 90$) and matched decimal controls ($29 \to 30$, $39 \to 40$, $49 \to 50$).
+\end{itemize}
+
+\subsection{Behavioral Evaluation}
+\label{sec:behavioral}
+
+We evaluate \gptmodel on five task types with temperature set to 0 for deterministic outputs:
+
+\para{French-to-number conversion.}
+Given a French number word (\eg \emph{quatre-vingt-treize}), the model must produce the corresponding digit (93).
+We test all 100 numbers from 0 to 99.
+
+\para{Number-to-French conversion.}
+The inverse task: given a digit, produce the correct French word form.
+
+\para{Belgian French-to-number conversion.}
+The same conversion task using Belgian French forms for the 30 vigesimal numbers.
+
+\para{Arithmetic in French.}
+The model receives addition problems where operands are written as French words and must produce the sum.
+Of the 100 tasks, we annotate which involve at least one vigesimal operand or produce a vigesimal result.
+
+\para{Counting sequences.}
+The model must continue a counting sequence in French across a boundary.
+We test three vigesimal boundaries ($69 \to 70$, $79 \to 80$, $89 \to 90$) and three decimal controls, evaluating whether each number in the generated sequence is correct.
+
+\subsection{Representational Analysis}
+\label{sec:repr}
+
+We use \mistral v0.3 to extract internal representations, as it is an open-weight model with strong French language capabilities.
+The model is loaded in float16 on a single NVIDIA RTX 3090.
+
+\para{Representation extraction.}
+For each number $n \in \{0, \ldots, 99\}$, we present three prompt forms:
+(1) \emph{Le nombre est [French word]},
+(2) \emph{Le nombre est [digit string]}, and
+(3) \emph{Le nombre est [Belgian French word]} (for $n \in \{70, \ldots, 99\}$).
+We extract the hidden state at the last token position from five layers: the embedding layer (0), layers 8, 16, 24, and the final layer (32).
+This yields representation vectors $\vh_n^{(\ell)} \in \sR^{d}$ for each number $n$, form, and layer $\ell$.
+
+\para{Tokenization analysis.}
+We count the number of tokens produced by \mistral's tokenizer for each number form, comparing vigesimal French words (70--99) against decimal French words (20--69) and digit strings.
+
+\para{Linear probing.}
+We train Ridge regression probes ($\alpha = 1.0$) to predict the numeric value $n$ from the hidden-state vector $\vh_n^{(\ell)}$.
+We report mean absolute error ($\MAE$) and $R^2$ using 5-fold cross-validation, comparing performance across French, Belgian French, and digit forms, and between vigesimal and decimal subsets.
+
+\para{Representational Similarity Analysis.}
+We compute pairwise cosine distances between all number representations within each form, producing a representational dissimilarity matrix (RDM).
+We compare each RDM against the ideal numeric RDM (where dissimilarity equals $|n_i - n_j|$) using Spearman correlation $\rho$, and compare RDMs across forms to measure cross-form alignment.
+
+\para{Nearest-neighbor analysis.}
+For each number in the vigesimal range, we identify its nearest neighbor in representation space (by cosine similarity) and record (a) whether the neighbor shares the same linguistic base (\eg both start with \quatrevingt) and (b) the numeric distance $|n - n_{\NN}|$.
+We compare these statistics against the decimal range (20--69) using Mann-Whitney U tests.

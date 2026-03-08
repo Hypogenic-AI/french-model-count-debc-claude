@@ -1,0 +1,14 @@
+\section{Conclusion}
+\label{sec:conclusion}
+
+We present the first systematic study of how LLMs represent and process French vigesimal numbers.
+Our behavioral evaluation shows that \gptmodel has fully mastered the French counting system, achieving 100\% accuracy on conversion, arithmetic, and counting tasks across the vigesimal range.
+Our representational analysis of \mistral reveals that this mastery coexists with a distinctive internal organization: vigesimal numbers cluster by linguistic base rather than numeric proximity, with 70\% of nearest neighbors sharing a prefix.
+Belgian French's regular decimal system produces representations with superior ordinal structure ($\rho = 0.591$ vs.\ $0.520$), and French number words are more linearly decodable than digit strings ($R^2 = 0.979$ vs.\ $0.943$).
+
+These findings carry two broader implications.
+First, behavioral benchmarks alone are insufficient for understanding how models process numbers---probing reveals structure that perfect accuracy masks.
+Second, linguistic regularity directly shapes the quality of internal numeric representations, suggesting that the design of a language's number system has consequences for how effectively LLMs encode numerical information.
+
+Future work should extend this analysis to other models, longer number ranges, and causal interventions that test whether the vigesimal representational structure affects downstream reasoning.
+Investigating other languages with irregular number systems---such as Danish (which uses a different vigesimal system) or Georgian---would further clarify the relationship between linguistic form and numerical representation in LLMs.

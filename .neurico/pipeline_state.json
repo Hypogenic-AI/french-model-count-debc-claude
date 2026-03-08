@@ -1,0 +1,34 @@
+{
+  "created_at": "2026-03-08T21:27:24.046999",
+  "stages": {
+    "resource_finder": {
+      "status": "completed",
+      "started_at": "2026-03-08T21:27:24.047353",
+      "completed_at": "2026-03-08T21:43:02.866589",
+      "success": true,
+      "outputs": {
+        "literature_review": "/workspaces/french-model-count-debc-claude/literature_review.md",
+        "resources_catalog": "/workspaces/french-model-count-debc-claude/resources.md",
+        "papers_dir": "/workspaces/french-model-count-debc-claude/papers",
+        "datasets_dir": "/workspaces/french-model-count-debc-claude/datasets",
+        "code_dir": "/workspaces/french-model-count-debc-claude/code"
+      }
+    },
+    "experiment_runner": {
+      "status": "completed",
+      "started_at": "2026-03-08T21:43:02.866913",
+      "completed_at": "2026-03-08T22:03:05.902747",
+      "success": true,
+      "outputs": {
+        "success": true,
+        "return_code": 0,
+        "elapsed_time": 1203.0165781974792,
+        "log_file": "/workspaces/french-model-count-debc-claude/logs/execution_claude.log",
+        "transcript_file": "/workspaces/french-model-count-debc-claude/logs/execution_claude_transcript.jsonl"
+      }
+    }
+  },
+  "current_stage": null,
+  "completed": true,
+  "completed_at": "2026-03-08T22:03:05.903317"
+}

@@ -1,0 +1,9 @@
+PDF: /workspaces/french-model-count-debc-claude/papers/2506.08966_number_representations_accurate.pdf
+Total pages: 12
+Pages per chunk: 3
+
+Chunks:
+  2506.08966_number_representations_accurate_chunk_001.pdf: pages 1-3
+  2506.08966_number_representations_accurate_chunk_002.pdf: pages 4-6
+  2506.08966_number_representations_accurate_chunk_003.pdf: pages 7-9
+  2506.08966_number_representations_accurate_chunk_004.pdf: pages 10-12
