@@ -1,0 +1,31 @@
+idea:
+  title: How does the model count in French?
+  domain: nlp
+  hypothesis: 'Large language models represent and process the French counting system,
+    which is counterintuitive yet systematic, in specific and potentially mappable
+    ways.
+
+    '
+  background:
+    description: 'French has an infamously counterintuitive counting system:
+
+      https://en.wikipedia.org/wiki/French_language#Numerals
+
+      Given that it''s a bit strange, but very clear, can we map out exactly how an
+      LLM represents it?
+
+      '
+  metadata:
+    author: Ari Holtzman
+    tags:
+    - french
+    - numerals
+    - llm
+    - representation
+    source: IdeaHub
+    source_url: https://hypogenic.ai/ideahub/idea/tQRaWVcutIBdq1yUbZwF
+    idea_id: how_does_the_model_count_in_fr_20260308_212718_23edee36
+    created_at: '2026-03-08T21:27:18.172464'
+    status: submitted
+    github_repo_name: french-model-count-debc-claude
+    github_repo_url: https://github.com/Hypogenic-AI/french-model-count-debc-claude
